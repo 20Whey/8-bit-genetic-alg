@@ -4,6 +4,12 @@ using UnityEngine;
 
 public class containEliteValues : MonoBehaviour
 {
-    public List<GameObject> Elites;
+    public List<float[]> Elites;
+    public List<float[]> coEvPlusMutation;
+    void Update()
+    {
+        
 
+        
+    }
 }
