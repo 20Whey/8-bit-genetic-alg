@@ -7,6 +7,7 @@ using System.Linq;
 
 public class coev : MonoBehaviour
 {
+    public double mainFit;
     public GameObject Peasant;
     public GameObject bsOB;
     public List<GameObject> lis;
@@ -29,6 +30,7 @@ public class coev : MonoBehaviour
 
     void Awake()
     {
+        mainFit = 0.0;
         //a little bit of initialisation 
         proportion = gameObject.GetComponent<globalTraits>().proportion;
         other = 1.0f - proportion;
@@ -40,100 +42,87 @@ public class coev : MonoBehaviour
         Original = mediator.GetComponent<kingState>().Original;
 
 
-        
-
-
-        /* var tempGamer1 = RouletteSelect(lis);
-         Debug.Log(string.Join(",", tempGamer1[0]));
-         Debug.Log(string.Join(",", tempGamer1[1]));
-         Debug.Log(string.Join(",", returnMutatedChild(tempGamer1, 4)));
-        */
-
-
         if (Input.GetKeyDown(KeyCode.R))
         {
-            lis = bsOB.GetComponent<create>().lis;
-            mx = new Dictionary<GameObject, double>();
+            mainFit = 0;
 
-            for (var i = 0; i < lis.Count; i++)
+            for (var c = 0; c < 10; c++)
             {
-                //Create Pairs for Wieghted Ordered Roulette Wheel
-                var tmp = createPairsToSort(lis[i], returnIndividualFitnessValue(Original, getDoub(lis[i])));
-                mx.Add((GameObject)tmp[0], (double)tmp[1]);
-            }
-            //Use Linq to sort the list properly by fitness and then process into binary arrays
-            var sortedDict = mx.OrderBy(pair => pair.Value).ToDictionary(pair => pair.Key, pair => pair.Value);
-            sortedL = sortedDict.Keys.ToList();
-            //Select Our Elites
-            //create list of gameObjects and from there get their binary arrays
-            ElitesGms = EliteSelect(sortedL, 10);
-            Elites = process(ElitesGms);
+                lis = bsOB.GetComponent<create>().lis;
+                mx = new Dictionary<GameObject, double>();
 
-            //get 45 objects from our weighted Wheel - Stoachistic 
-            theRest = new List<int[]>();
-            var tmap = RouletteSelect(sortedL, 45);
-            realUnsorted = new List<int[]>() ;
-            for (var i = 0; i < tmap.Count; i++)
-            {
-                realUnsorted.Add(getDoub(tmap[i]));
-                var brh = returnMutatedChildPair(realUnsorted[i], realUnsorted[ new System.Random().Next(0, realUnsorted.Count-1)], 4);
-                theRest.Add(brh);
-                theRest.Add(brh);
-            }
-            for(var i = 0; i < Elites.Count; i++)
-            {
-                theRest.Add(Elites[i]);
-            }
-            Debug.Log(theRest.Count);
-
-            
-
-
-            for(var i = 0; i < theRest.Count; i++) {
-                
-                GameObject nw = Instantiate(Peasant, new Vector3(rand(), 1f, rand()), Quaternion.identity);
-                var scr = nw.GetComponent<peasantInit>();
-                scr.parentHad += 1;
-               
-                for (var j = 0; j < 8; j++)
+                for (var i = 0; i < lis.Count; i++)
                 {
-                    scr.illWill[j] = theRest[i][j];
-                    nw.transform.SetParent(bsOB.transform);
+                    //Create Pairs for Wieghted Ordered Roulette Wheel
+                    var tmp = createPairsToSort(lis[i], returnIndividualFitnessValue(Original, getDoub(lis[i])));
+                    mx.Add((GameObject)tmp[0], (double)tmp[1]);
                 }
+                //Use Linq to sort the list properly by fitness and then process into binary arrays
+                var sortedDict = mx.OrderBy(pair => pair.Value).ToDictionary(pair => pair.Key, pair => pair.Value);
+                sortedL = sortedDict.Keys.ToList();
+                //Select Our Elites
+                //create list of gameObjects and from there get their binary arrays
+                ElitesGms = EliteSelect(sortedL, 10);
+                Elites = process(ElitesGms);
 
-                scr.fitness = returnIndividualFitnessValue(Original, theRest[i]);
-                Destroy(bsOB.transform.GetChild(i).gameObject);
-                lis.RemoveAt(i);
-                lis.Insert(i, nw);
+                //get 45 objects from our weighted Wheel - Stoachistic 
+                theRest = new List<int[]>();
+                var tmap = RouletteSelect(sortedL, 45);
+                realUnsorted = new List<int[]>();
+                for (var i = 0; i < tmap.Count; i++)
+                {
+                    realUnsorted.Add(getDoub(tmap[i]));
+                    var brh = returnMutatedChildPair(realUnsorted[i], realUnsorted[new System.Random().Next(0, realUnsorted.Count - 1)], ranInt(0, 7));
+                    theRest.Add(brh);
+                    theRest.Add(brh);
+                }
+                for (var i = 0; i < Elites.Count; i++)
+                {
+                    theRest.Add(Elites[i]);
+                }
+                Debug.Log(theRest.Count);
+
+
+
+
+                for (var i = 0; i < theRest.Count; i++)
+                {
+
+                    GameObject nw = Instantiate(Peasant, new Vector3(rand(), 1f, rand()), Quaternion.identity);
+                    var scr = nw.GetComponent<peasantInit>();
+                    scr.parentHad += 1;
+
+                    for (var j = 0; j < 8; j++)
+                    {
+                        scr.illWill[j] = theRest[i][j];
+                        nw.transform.SetParent(bsOB.transform);
+                    }
+
+                    scr.fitness = returnIndividualFitnessValue(Original, theRest[i]);
+                    mainFit = mainFit + scr.fitness;                    
+                    lis.RemoveAt(i);
+                    lis.Insert(i, nw);
+                }
             }
-           
 
-
-
-
-
-            /*
-            List<int[]> twoD = new List<int[]>();
-          var ex = returnMutatedChildPair(realUnsorted[i][0], realUnsorted[i][1], 4);
-
-            returnMutatedChildPair(realUnsorted[i], 4);*/
-            /*returnMutatedChildPair(realUnsorted[i], 4);
-        int[][] twoD = returnMutatedChildPair(realUnsorted[i], 4);
-        // twoD[0] =
-
-        Debug.Log(twoD);
-
-        */
-
-            //  Debug.Log(string.Join(",", realUnsorted[i][0]));
-
-            //var tmp = returnMutatedChildPair(realUnsorted[i][0], realUnsorted[i][1], 4);
-            //realUnsorted[i] = tmp;
-
+            for (var d = 0; d < bsOB.transform.childCount; d++)
+            {
+                if (!lis.Contains(bsOB.transform.GetChild(d).gameObject))
+                {
+                    Destroy(bsOB.transform.GetChild(d).gameObject);
+                }
+            }
+            mainFit = Math.Round((mainFit / 100), 3);
         }
+      
+      
     }
 
-
+    public int ranInt(int min, int max)
+    {
+        System.Random rnd = new System.Random();
+        return rnd.Next(min, max);
+    }
     public float rand()
     {
         System.Random ran = new System.Random();
